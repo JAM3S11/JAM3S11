@@ -18,13 +18,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: Regenerate DevOps panel
-        run: node scripts/devops-stats.mjs
+      - name: Render terminal SVG
+        run: node scripts/render-terminal.mjs
 
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898+github-actions[bot]@users.noreply.github.com"
-          git add README.md
-          git diff --cached --quiet || git commit -m "chore(devops): sync contribution stats"
+          git add assets/terminal.svg docs/stats.json
+          git diff --cached --quiet || git commit -m "chore(terminal): sync live stats"
           git push

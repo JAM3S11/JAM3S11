@@ -1,0 +1,61 @@
+{
+  "user": "james",
+  "host": "jam3s11",
+  "github": "JAM3S11",
+  "name": "James Daniel",
+  "tagline": "full stack developer · security-minded · ships daily",
+  "motd": [
+    "Welcome, visitor. Your session is being logged (by GitHub, not me).",
+    "James boots on C, runs on TypeScript, and treats every input field",
+    "like it's actively trying to hurt him. Never trust user input. Ever."
+  ],
+  "logo": ["     ██╗", "     ██║", "     ██║", "██   ██║", "╚█████╔╝", " ╚════╝ "],
+  "neofetch": [
+    ["OS", "JamesOS 4.0.0-beta (Full Stack)"],
+    ["Kernel", "C (2022) → C# → TypeScript"],
+    ["Stack", "React · Next.js · Node · Django · Postgres · Docker"],
+    ["Security", "assume breach · never trust user input"],
+    ["Shell", "bash · PowerShell"],
+    ["Fuel", "coffee (>= 3 cups/day)"]
+  ],
+  "projects": [
+    { "name": "solease", "url": "https://github.com/JAM3S11/solease", "pitch": "a unified command center for your entire engineering stack" },
+    { "name": "entrywave", "url": "https://github.com/JAM3S11/entrywave", "pitch": "graduation demo view site" },
+    { "name": "Quartersortai", "url": "https://github.com/JAM3S11/Quartersortai", "pitch": "intelligent USB document explorer & financial quarter classifier" },
+    { "name": "GC-ILCMS", "url": "https://github.com/JAM3S11/GC-ILCMS", "pitch": "case management prototype for the Government Chemist lab" },
+    { "name": "portfolio", "url": "https://github.com/JAM3S11/portfolio", "pitch": "personal site · responsive, fast, permanently at v0.99" }
+  ],
+  "skills": {
+    "languages": ["C", "C#", "Java", "Python", "JavaScript", "TypeScript", "PowerShell"],
+    "frontend": ["React", "Next.js", "Redux", "Tailwind", "Material UI", "Chakra UI", "DaisyUI"],
+    "backend": ["Node", "Express", "Django", "Flask", "FastAPI", "Socket.io", "JWT"],
+    "data": ["MongoDB", "PostgreSQL", "MySQL", "SQLite", "Supabase", "Firebase"],
+    "ml": ["PyTorch", "TensorFlow", "scikit-learn", "Pandas", "NumPy"],
+    "security": ["OWASP Top 10", "bcrypt", "Helmet", "rate limiting", "CSP"],
+    "ship": ["Docker", "AWS", "Vercel", "Netlify", "Render"],
+    "tooling": ["Git", "Linux", "Bash", "Postman", "Figma", "Notion"]
+  },
+  "security": {
+    "practices": [
+      ["auth", "hashed + salted passwords (bcrypt/argon2), short-lived JWTs, refresh rotation"],
+      ["input", "validate on the server, always. the client is a suggestion"],
+      ["injection", "parameterised queries only. string-concatenated SQL is a confession"],
+      ["sessions", "HttpOnly · Secure · SameSite cookies, CSRF tokens on state changes"],
+      ["headers", "CSP, HSTS, X-Content-Type-Options, and CORS that isn't just \"*\""],
+      ["secrets", ".env in .gitignore, keys in a vault, rotated when in doubt"],
+      ["access", "least privilege for users, services and database roles alike"],
+      ["supply-chain", "npm audit, Dependabot, committed lockfiles, pinned versions"]
+    ],
+    "audit": { "pass": 5, "fail": 1, "note": "social engineering: \"can you look at my code?\"" }
+  },
+  "contacts": [
+    { "label": "linkedin", "handle": "james-daniel-jr", "url": "https://linkedin.com/in/james-daniel-jr" },
+    { "label": "medium", "handle": "@jdndirangu2020", "url": "https://medium.com/@jdndirangu2020" },
+    { "label": "stackoverflow", "handle": "user/27977762", "url": "https://stackoverflow.com/users/27977762" },
+    { "label": "reddit", "handle": "u/Artistic_Toe5484", "url": "https://reddit.com/user/Artistic_Toe5484" },
+    { "label": "pinterest", "handle": "jdndirangu", "url": "https://pinterest.com/jdndirangu" },
+    { "label": "mail", "handle": "jdndirangu2020", "url": "mailto:jdndirangu2020@gmail.com" },
+    { "label": "portfolio", "handle": "james-daniel", "url": "https://james-daniel.vercel.app" }
+  ],
+  "shellUrl": "https://jam3s11.github.io/JAM3S11/"
+}

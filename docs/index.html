@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>james@jam3s11 · shell</title>
+<meta name="description" content="James Daniel's interactive terminal. Type 'help'.">
+<style>
+  :root {
+    --bg: #0d1117; --bar: #161b22; --edge: #30363d; --page: #010409;
+    --fg: #e6edf3; --dim: #8b949e; --user: #3fb950; --path: #58a6ff;
+    --label: #d2a8ff; --ok: #3fb950; --bad: #f85149; --warn: #d29922;
+    --mono: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--page); color: var(--fg); font: 14px/1.45 var(--mono);
+    display: flex; align-items: center; justify-content: center; padding: 24px 16px;
+  }
+  .window {
+    width: 100%; max-width: 920px; height: min(82vh, 720px);
+    background: var(--bg); border: 1px solid var(--edge); border-radius: 10px;
+    display: flex; flex-direction: column; overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .55);
+  }
+  .bar {
+    position: relative; flex: none; height: 36px; background: var(--bar);
+    border-bottom: 1px solid var(--edge); display: flex; align-items: center; gap: 8px; padding: 0 14px;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .bar .title { position: absolute; left: 0; right: 0; text-align: center; color: var(--dim); font-size: 13px; pointer-events: none; }
+  .screen { flex: 1; overflow-y: auto; padding: 14px 18px 18px; cursor: text; }
+  .line { white-space: pre-wrap; word-break: break-word; min-height: 1.45em; }
+  .row { display: flex; }
+  #ps1 { white-space: pre; }
+  .row input {
+    flex: 1; min-width: 0; background: none; border: 0; outline: 0; padding: 0;
+    color: var(--fg); font: inherit; caret-color: var(--user);
+  }
+  .u { color: var(--user); } .p { color: var(--path); } .l { color: var(--label); }
+  .ok { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); } .dim { color: var(--dim); }
+  a { color: var(--path); text-decoration: none; border-bottom: 1px dotted var(--path); }
+  a:hover, a:focus-visible { color: var(--fg); border-bottom-color: var(--fg); outline: none; }
+  .k { display: inline-block; min-width: 15ch; padding-right: 1ch; }
+  .logo { color: var(--user); }
+  @media (max-width: 560px) {
+    body { padding: 0; align-items: stretch; }
+    .window { height: 100%; max-width: none; border-radius: 0; border: 0; }
+    .screen { font-size: 12.5px; padding: 12px; }
+    .k { min-width: 11ch; }
+  }
+</style>
+</head>
+<body>
+<main class="window" aria-label="interactive terminal">
+  <div class="bar">
+    <span class="dot" style="background:#ff5f56"></span><span class="dot" style="background:#ffbd2e"></span><span class="dot" style="background:#27c93f"></span>
+    <span class="title">visitor@jam3s11: ~</span>
+  </div>
+  <div class="screen" id="screen">
+    <div id="out" aria-live="polite"></div>
+    <div class="row">
+      <span id="ps1"></span><input id="in" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="command">
+    </div>
+  </div>
+</main>
+<script>
+(async () => {
+  const $out = document.getElementById("out");
+  const $in = document.getElementById("in");
+  const $screen = document.getElementById("screen");
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? 0 : ms));
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  const link = (url, text) => `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>`;
+
+  const load = async (f) => { try { const r = await fetch(f, { cache: "no-store" }); return r.ok ? r.json() : null; } catch { return null; } };
+  const P = await load("profile.json");
+  const S = await load("stats.json");
+  if (!P) { $out.innerHTML = `<div class="line bad">boot failed: profile.json unreachable</div>`; return; }
+
+  const PS1 = `<span class="u">visitor@${esc(P.host)}</span>:<span class="p">~</span>$ `;
+  document.getElementById("ps1").innerHTML = PS1;
+
+  const print = (html = "") => {
+    const d = document.createElement("div");
+    d.className = "line";
+    d.innerHTML = html;
+    $out.appendChild(d);
+    $screen.scrollTop = $screen.scrollHeight;
+  };
+  const kv = (k, v, cls = "l") => `<span class="${cls} k">${esc(k)}</span>${v}`;
+
+  const projectsByName = Object.fromEntries(P.projects.map((p) => [p.name.toLowerCase(), p]));
+
+  const cmds = {
+    help: { d: "list commands", run() {
+      Object.entries(cmds).filter(([, c]) => c.d).forEach(([n, c]) => print(kv(n, `<span class="dim">${esc(c.d)}</span>`, "u")));
+      print(`<span class="dim">tab completes · ↑/↓ history · links are clickable</span>`);
+    } },
+    whoami: { d: "who is james", run() {
+      print(`<span class="u">${esc(P.name)}</span> · ${esc(P.tagline)}`);
+      P.motd.forEach((l) => print(`<span class="dim">${esc(l)}</span>`));
+    } },
+    neofetch: { d: "system info", run() {
+      const rows = [`<span class="u">${esc(P.user)}</span>@<span class="u">${esc(P.host)}</span>`, ...P.neofetch.map(([k, v]) => kv(k, esc(v)))];
+      const w = Math.max(...P.logo.map((l) => [...l].length));
+      rows.forEach((r, i) => print(`<span class="logo">${esc((P.logo[i] ?? "").padEnd(w))}</span>   ${r}`));
+    } },
+    projects: { d: "what i've built (alias: ls)", run() {
+      P.projects.forEach((p) => print(`${kv(p.name + "/", "", "p")}<span class="dim">${esc(p.pitch)}</span>  ${link(p.url, "↗")}`));
+      print(`<span class="dim">try: cd ${esc(P.projects[0].name)}</span>`);
+    } },
+    cd: { d: "cd <project> · open a repo", run(arg) {
+      if (!arg || arg === "~") return;
+      const p = projectsByName[arg.replace(/\/$/, "").toLowerCase()];
+      if (!p) return print(`<span class="bad">cd: no such project: ${esc(arg)}</span>`);
+      print(`opening ${link(p.url, p.url)} …`);
+      window.open(p.url, "_blank", "noopener");
+    } },
+    skills: { d: "the stack, as package.json", run() {
+      Object.entries(P.skills).forEach(([k, v]) => print(kv(k, esc(v.join(" · ")))));
+    } },
+    security: { d: "how i build securely", run() {
+      P.security.practices.forEach(([k, v]) => print(kv(`[${k}]`, esc(v))));
+      const a = P.security.audit;
+      print();
+      print(`<span class="ok">[PASS] ${a.pass}</span>   <span class="bad">[FAIL] ${a.fail}</span>   <span class="dim">${esc(a.note)}</span>`);
+    } },
+    stats: { d: "live contribution pipeline", run() {
+      if (!S) return print(`<span class="warn">stats offline · pipeline unreachable</span>`);
+      print(kv("✔ build", `${S.total.toLocaleString("en-US")} contributions <span class="dim">since ${esc(S.firstContribution)}</span>`, "ok"));
+      print(S.current > 0
+        ? kv("✔ deploy", `${S.current}-day streak <span class="dim">${esc(S.currentRange.join(" → "))}</span>`, "ok")
+        : kv("✖ deploy", `idle <span class="dim">next commit restarts the pipeline</span>`, "bad"));
+      print(kv("✔ scale", `${S.longest}-day record <span class="dim">${esc(S.longestRange.join(" → "))}</span>`, "ok"));
+      print(`<span class="dim"># synced ${esc(S.syncedAt.slice(0, 16).replace("T", " "))} UTC by GitHub Actions</span>`);
+    } },
+    contact: { d: "open a secure channel", run() {
+      print(`<span class="ok">[+]</span> handshake complete · cipher: friendliness-256-gcm`);
+      P.contacts.forEach((c) => print(kv(c.label, link(c.url, c.handle))));
+    } },
+    history: { d: "previous commands", run() { hist.forEach((h, i) => print(`<span class="dim">${String(i + 1).padStart(4)}</span>  ${esc(h)}`)); } },
+    clear: { d: "clear the screen", run() { $out.innerHTML = ""; } },
+    exit: { d: "log out", run() {
+      print("logout");
+      print(`Connection to ${esc(P.host)} closed. ${link(`https://github.com/${P.github}`, "↩ back to github")}`);
+    } },
+    // undocumented, on purpose
+    ls: { run(arg) { cmds.projects.run(arg); } },
+    pwd: { run() { print(`/home/${esc(P.user)}`); } },
+    date: { run() { print(esc(new Date().toString())); } },
+    echo: { run(arg) { print(esc(arg)); } },
+    sudo: { run(arg) {
+      if (/^hire\s+james/i.test(arg)) {
+        print(`<span class="ok">[sudo] access granted.</span> excellent decision.`);
+        const li = P.contacts.find((c) => c.label === "linkedin");
+        if (li) print(`next step → ${link(li.url, "linkedin/" + li.handle)}`);
+        return;
+      }
+      print(`<span class="bad">visitor is not in the sudoers file. This incident will be reported.</span>`);
+    } },
+    rm: { run(arg) { print(/-rf?\s+\//.test(arg) ? `<span class="warn">nice try. this filesystem is read-only and so is my patience.</span>` : `rm: permission denied`); } },
+  };
+  const names = Object.keys(cmds);
+
+  const hist = [];
+  let hi = 0;
+
+  const run = async (line) => {
+    print(`${PS1}${esc(line)}`);
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    hist.push(trimmed);
+    hi = hist.length;
+    const [name, ...rest] = trimmed.split(/\s+/);
+    const c = cmds[name.toLowerCase()];
+    if (c) await c.run(rest.join(" "));
+    else print(`<span class="bad">command not found: ${esc(name)}</span> <span class="dim">· try 'help'</span>`);
+  };
+
+  const complete = (v) => {
+    const m = v.match(/^cd\s+(\S*)$/i);
+    const pool = m ? P.projects.map((p) => p.name) : names;
+    const frag = (m ? m[1] : v).toLowerCase();
+    const hits = pool.filter((n) => n.toLowerCase().startsWith(frag));
+    if (hits.length === 1) return m ? `cd ${hits[0]}` : hits[0] + " ";
+    if (hits.length > 1) { print(`${PS1}${esc(v)}`); print(hits.map(esc).join("   ")); }
+    return v;
+  };
+
+  $in.addEventListener("keydown", async (e) => {
+    if (e.key === "Enter") { const v = $in.value; $in.value = ""; await run(v); }
+    else if (e.key === "Tab") { e.preventDefault(); $in.value = complete($in.value); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); if (hi > 0) $in.value = hist[--hi]; }
+    else if (e.key === "ArrowDown") { e.preventDefault(); hi = Math.min(hi + 1, hist.length); $in.value = hist[hi] ?? ""; }
+    else if (e.key === "l" && e.ctrlKey) { e.preventDefault(); cmds.clear.run(); }
+  });
+  // tap anywhere to type, but let people select text and click links
+  $screen.addEventListener("click", (e) => { if (!e.target.closest("a") && !getSelection().toString()) $in.focus(); });
+
+  // boot: auto-type a short intro, then hand the keyboard to the visitor
+  $in.disabled = true;
+  print(`<span class="dim">Last login: ${esc(new Date().toUTCString())} from github.com</span>`);
+  cmds.whoami.run();
+  print();
+  for (const demo of ["neofetch", "help"]) {
+    for (const ch of demo) { $in.value += ch; await sleep(70); }
+    await sleep(250);
+    $in.value = "";
+    await run(demo);
+    print();
+    await sleep(350);
+  }
+  $in.disabled = false;
+  $in.focus();
+})();
+</script>
+</body>
+</html>

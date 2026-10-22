@@ -1,0 +1,15 @@
+{
+  "total": 710,
+  "current": 5,
+  "longest": 93,
+  "currentRange": [
+    "2026-10-18",
+    "2026-10-22"
+  ],
+  "longestRange": [
+    "2026-01-01",
+    "2026-04-03"
+  ],
+  "firstContribution": "2023-05-06",
+  "syncedAt": "2026-10-22T16:56:26.588Z"
+}
